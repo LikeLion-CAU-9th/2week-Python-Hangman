@@ -2,9 +2,12 @@ import random
 
 HANGMAN_SUGGESTED_WORD_START_INDEX = 1
 UNDER_BAR = "_"
-PRINTER_FINISH_GAME_MESSAGE = "game 이 끝났습니다!"
-PRINTER_WRONG_LETTER_MESSAGE = "잘못된 문자가 들어가 있습니다!"
-INPUT_ATTEMPT_WORD_MESSAGE = "도전할 단어를 적어주세요 : "
+INPUT_ATTEMPT_WORD_MESSAGE = "도전할 문자를 적어주세요 : "
+INPUT_ATTEMPT_WRONG_WORD_MESSAGE = "올바른 형식으로 입력해주세요.(영어, 한글자)"
+PRINTER_FINISH_GAME_MESSAGE = "MISSION COMPLETE: 행맨을 살렸습니다."
+PRINTER_FAIL_GAME_MESSAGE = "GAME OVER: 행맨이 죽었습니다."
+PRINTER_WRONG_LETTER_MESSAGE = "단어에 없는 문자입니다!"
+
 
 hangman_suggested_word = {
     1: "orange",
@@ -22,8 +25,15 @@ def input_attempt_word():
     input_word = input(INPUT_ATTEMPT_WORD_MESSAGE)
     return input_word
 
+def check_input_attempt_word():
+    while True:
+        input_word = input_attempt_word()
+        if input_word.isalpha() and len(input_word) == 1:
+            break
+        print(INPUT_ATTEMPT_WRONG_WORD_MESSAGE)
+    return input_word
 
-def printer_people(count):
+def printer_hangman(count):
     if count >= 1:
         head = "(.,.)"
     else:
@@ -50,13 +60,13 @@ def printer_people(count):
         right_leg = " "
 
     print("----------")
-    print("  |    || ")
-    print("%s  || " % head)
-    print(" %s%s%s   || " % (left_arm, body, right_arm))
-    print("  %s    || " % body)
-    print(" %s %s   || " % (left_leg, right_leg))
-    print("       || ")
-    print("----------")
+    print("  |     ||")
+    print("%s   ||" % head)
+    print(" %s%s%s    ||" % (left_arm, body, right_arm))
+    print("  %s     ||" % body)
+    print(" %s %s    ||" % (left_leg, right_leg))
+    print("        ||")
+    print("     -----")
 
 
 def printer_new_line():
@@ -74,29 +84,34 @@ def printer_under_bar():
 def printer_matched_lettering(lettering):
     print(lettering, " ", end="")
 
+def printer_hangman_answer_word(hangman_answer_word):
+    print("제시된 단어 : ", hangman_answer_word)
 
 def printer_finish_game():
     print(PRINTER_FINISH_GAME_MESSAGE)
 
-
-def printer_hangman_suggested_word(hangman_final_answer_word):
-    print("제시된 단어 : ", hangman_final_answer_word)
+def printer_fail_game():
+    print(PRINTER_FAIL_GAME_MESSAGE)
 
 
 def get_hangman_suggested_word_size():
     return len(hangman_suggested_word)
 
 
-def get_hangman_final_answer_word():
+def get_hangman_answer_word():
     random_word_index = random.randint(HANGMAN_SUGGESTED_WORD_START_INDEX, get_hangman_suggested_word_size())
-    hangman_final_answer_word = hangman_suggested_word.get(random_word_index)
-    return hangman_final_answer_word
+    hangman_answer_word = hangman_suggested_word.get(random_word_index)
+    return hangman_answer_word
 
+def is_fail_game(fail_count):
+    if fail_count == 7:
+        return True
+    return False
 
-def compare_suggested_word(attempt_word, hangman_final_answer_word):
+def compare_suggested_word(attempt_word, hangman_answer_word):
     is_succeed = True
 
-    for lettering in hangman_final_answer_word:
+    for lettering in hangman_answer_word:
         if lettering in attempt_word:
             printer_matched_lettering(lettering)
         else:
@@ -105,35 +120,43 @@ def compare_suggested_word(attempt_word, hangman_final_answer_word):
 
     return is_succeed
 
+def append_letter_attempt_word(letter, attempt_word):
+    if letter not in attempt_word:
+        attempt_word += letter
+    return attempt_word
+
+def check_letter_in_answer_word(letter, hangman_answer_word, fail_count):
+    if letter not in hangman_answer_word:
+        printer_wrong_letter()
+        printer_new_line()
+        fail_count += 1
+    return fail_count
 
 def run():
     attempt_word = ""
-    hangman_final_answer_word = get_hangman_final_answer_word()
+    hangman_answer_word = get_hangman_answer_word()
     fail_count = 0
     while True:
-        game_succeed = compare_suggested_word(attempt_word, hangman_final_answer_word)
+        game_succeed = compare_suggested_word(attempt_word, hangman_answer_word)
+
+        printer_new_line()
 
         if game_succeed:
             printer_finish_game()
-            printer_hangman_suggested_word(hangman_final_answer_word)
+            printer_hangman_answer_word(hangman_answer_word)
             break
 
         printer_new_line()
 
-        letter = input_attempt_word()
+        letter = check_input_attempt_word()
+        attempt_word = append_letter_attempt_word(letter, attempt_word)
+        fail_count = check_letter_in_answer_word(letter, hangman_answer_word, fail_count)
 
-        # 분리
-        if letter not in attempt_word:
-            attempt_word += letter
-
-        # business logic 분리
-        if letter not in hangman_final_answer_word:
-            printer_wrong_letter()
-            fail_count += 1
-        if fail_count == 7:
-            print("행맨이 죽었습니다!!")
+        if is_fail_game(fail_count):
+            printer_fail_game()
             break
-        printer_people(fail_count)
+
+        printer_hangman(fail_count)
 
 
 
