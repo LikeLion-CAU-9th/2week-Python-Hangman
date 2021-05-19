@@ -30,3 +30,4 @@
 - compare_suggested_word(attempt_word, hangman_answer_word): 시도한 단어 문자열과 선택된 단어를 비교해 언더바와 글자로 출력해주는 함수. 언더바가 출력될 경우 성공한 것이 아니므로 False를 리턴한다.
 - append_letter_attempt_word(letter, attempt_word): 시도한 단어 문자열에 입력한 글자가 없다면 넣어주는 함수
 - check_letter_in_answer_word(letter, hangman_answer_word, fail_count): 선택된 단어에 입력한 글자가 없다면 fail_count를 증가하는 함수
+- 
